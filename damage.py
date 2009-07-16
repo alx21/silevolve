@@ -24,4 +24,4 @@ class Damage():
     def getDamage(self): return max(self.MoS * self.dm, 0)
     
     def applyDamage(self):
-        self.target.wound(self)
+        return self.target.wound(self)

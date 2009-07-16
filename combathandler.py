@@ -1,7 +1,7 @@
 from silconstants import *
 import character
 
-debug = character.debug
+debug = False
 
 class CombatHandler():
     def __init__(self, teams):
@@ -44,8 +44,8 @@ class CombatHandler():
         for t in self.teams:
         
             if len(t) == 0:
-                print "EMPTY TEAM"
-                continue
+                if debug: print "EMPTY TEAM, this fight is over!"
+                return False
             
             # find the highest initiative
             i = max(i, t[-1].getInit())
@@ -66,7 +66,8 @@ class CombatHandler():
                 if debug: print "Running the combat which happens at initiative ", i
                 self.__combatSlice(cslice)
             i -= 1
-            
+        
+        return True
         
             
     def __combatSlice(self, cslice):
@@ -96,10 +97,7 @@ class CombatHandler():
         # Now apply all of the damages
         for d in action_list:
             if debug: print "Applying damage! to", d.target.name
-            if d.applyDamage():
-                # This indicates the player has been taken out of the fight
-                self.__removeCharacter(d.target)
-            else:
+            if not d.applyDamage():
                 # don't bother giving them a free strike if one is dead :P
                 if d.attacker_gets_free_strike and not c.has_used_free_strike:
                     free_strike_list.append((c,d.target))
@@ -126,8 +124,7 @@ class CombatHandler():
             temp_action_penalty = a[0].action_penalty
             a[0].setActionPenalty(0)
             
-            if a[0].attack(target=a[1]).applyDamage():
-                self.__removeCharacter(a[1])
+            a[0].attack(target=a[1]).applyDamage()
             
             a[0].hasUsedFreeAction = True
             a[0].setActionPenalty(temp_action_penalty)

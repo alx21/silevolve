@@ -186,8 +186,8 @@ ak74 = gun( name="AK74",
             defense=0,
             ap = False )
 
-iron_fist = meleeWeapon(name="Yuri's Iron Fist", acc=1, dm=3) # the acc is used to show
-# the specialty of the fist's only likely wielder
+iron_fist = meleeWeapon(name="Yuri's Iron Fist", acc=1, dm=3)
+# the acc is used to show the specialty of the fist's only likely wielder
 
 staff = hth(name="Wooden Staff", dm=7, defense=1)
 # I'm putting this in hth for now because I think some weapons should be capable

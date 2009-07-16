@@ -4,7 +4,7 @@ import random
 
 debug = False
 
-class character():
+class Character():
     def __init__(self,
             name="Thug",
             dmg=8,
@@ -18,25 +18,26 @@ class character():
             wounds=0,
             weapons=[weaponlist.meleeWeapon(), weaponlist.hth()],
             done=False):
-        self.name=name
-        self.attroll = attroll
-        self.dmg = dmg
-        self.defroll = defroll
-        self.stamina = stamina
-        self.armor = armor
+        self.name         = name
+        self.attroll      = attroll
+        self.dmg          = dmg
+        self.defroll      = defroll
+        self.stamina      = stamina
+        self.armor        = armor
         self.head_armored = head_armored
-        self.init = init
-        self.health = health
-        self.wounds = wounds
-        self.weapons = weapons
-        self.done = done
-        self.stance = (0,0,0) # (attack defense init attack_bonus) dice count mods
-        self.prone = False
-        self.has_used_free_strike = False
+        self.init         = init
+        self.health       = health
+        self.wounds       = wounds
+        self.weapons      = weapons
+        self.done         = done
+        self.stance = (0,0,0) # (attack defense init attack_bonus) dice mods
+        # note that 'focused' doesn't exist yet.
+        self.prone                     = False
+        self.has_used_free_strike      = False
         self.multiple_attacker_penalty = 0
-        self.attacker_list = []
-        self.current_init = -1
-        self.action_penalty = 0
+        self.attacker_list             = []
+        self.current_init              = -1
+        self.action_penalty            = 0
         
     def setActionPenalty(self, penalty):
         self.action_penalty = penalty
@@ -72,6 +73,7 @@ class character():
                     int(self.prone),
                     len(self.weapons) - 1 ]
                     
+        # I'm not sure if this is the best way to represent weapon data ...
         for w in self.weapons:
             ai_data += w.getAIData()
             
@@ -79,6 +81,7 @@ class character():
                     
         
     def wound(self, damage):
+        """ Hurt a guy! Returns True if the victim has been offed or KOd """
     
         self.incMultipleAttackerPenalty(damage.attacker)
     
@@ -93,7 +96,10 @@ class character():
     
         if dmg > self.stamina * 2 + arm:
             self.done = True
-            if debug: print self.name, "has been instant deathed with damage:", dmg
+
+            if debug:
+                print self.name, "has been instant deathed with damage:", dmg
+                
         elif dmg > self.stamina + arm:
             self.wounds += -2
         elif dmg > self.stamina // 2 + arm:
@@ -101,38 +107,49 @@ class character():
         
         knockoutpenalty = 0
         if damage.knockout: knockoutpenalty = damage.MoS * -1
-        print knockoutpenalty, "knockoutpenalty"
         
-        if debug: print "DAMAGE: Target: ", self.name, " damage: ", dmg, " wounds: ", self.wounds, " map: ", self.multiple_attacker_penalty
+        if damage.MoS > 0 and damage.knockdown:
+            if debug: print self.name, "has fallen down and CAN'T GET UP"
+            self.prone = True
         
-        return self.done or self.healthCheck(knockoutpenalty)
+        if debug:
+            print "DAMAGE: Target: ", self.name, " damage: ", dmg, " wounds: ", self.wounds, " map: ", self.multiple_attacker_penalty
+        
+        return self.healthCheck(knockoutpenalty)
         
     def healthCheck(self, knockoutpenalty = 0):
-        if self.wounds*-1 >  5 + self.health:
+        if self.wounds*-1 >=  5 + self.health:
             self.done = True
-            if debug: print self.name, "has been removed from the fight by way of massive wound penalties!"
+            if debug:
+                print self.name, "has been removed from the fight by way of  massive wound penalties!"
         else:
             roll = rollX(2, self.wounds + self.health + knockoutpenalty)
-            if debug: print self.name, "health check: ", roll, "with health", self.health, "and penalty", knockoutpenalty
+            
+            if debug:
+                print self.name, "health check: ", roll, "with health", self.health, " wounds", self.wounds, "and KO penalty", knockoutpenalty
+            
             if roll[1] or roll[0] < 1:
                 self.done = True
-                if debug: print self.name, "has been removed from the fight by way of KO!"
+                
+                if debug:
+                    print self.name, "has been removed from the fight by way of KO!"
+
         return self.done
         
     def rollAtt(self, dicedropped=0):
         dice = self.attroll[0] + dicedropped + self.stance[0]
         bonus = self.attroll[1] + self.wounds + self.action_penalty
         roll = rollX(dice,bonus)
-        if debug: print self.name, "attack rolling", dice, bonus, ":", roll
+        if debug: print "  ", self.name, "attack rolling", dice, bonus, ":", roll
         return roll
         
     def rollDef(self, dicedropped=0):
         dice = self.defroll[0] + dicedropped + self.stance[1]
-        prone = 0
-        if self.prone: prone = -3
-        bonus = self.defroll[1] + self.wounds + self.multiple_attacker_penalty + prone
+        prone_penalty = 0
+        if self.prone: prone_penalty = -3
+        bonus = self.defroll[1] + self.wounds + self.multiple_attacker_penalty + prone_penalty
         roll = rollX( dice, bonus  )
-        if debug: print self.name, "defence rolling", dice, bonus, ":", roll
+        if debug: print "  ", self.name, "defence rolling", dice, bonus, ":", roll
         return roll
         
     def setInit(self):
@@ -173,6 +190,8 @@ class character():
         # Rename this to action, perhaps
         # implement special actions maybe
         
+        if debug: print "***", self.name, "selects attack now!"
+        
         if not target:
             if not enemies: return None
             # a defined target means a free strike against a specific foe
@@ -180,9 +199,11 @@ class character():
             
         opts = dict({})
         weapon = self.pickWeapon()
-        if debug: print "Picked weapon:", weapon
+        if debug: print "    Picked:", weapon.name
         attack_type = self.pickAttackType(weapon)
-        if debug: print "Picked attack type:", attack_type
+        
+        if debug: print "    Picked attack type:", attack_type
+        
         opts[sil._ATT_TYPE] = attack_type
         
         opt_list = weapon.getAttackOptions()[attack_type]

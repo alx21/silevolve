@@ -11,6 +11,7 @@ _ATT_PENALTY = "ATT_PENALTY"
 _DEF_PENALTY = "DEF_PENALTY"
 
 # internally-used opts
+# I don't think this is used right now ...
 _SPECIAL_DICE = "SPECIAL_DICE" # dice dropped for special attacks like knockout
 
 # type
@@ -25,7 +26,7 @@ _RA_B = 3
 _ROF = "ROF"
 
 
-# PENALTIES
+# DIE PENALTIES
 _RANGED_HEADSHOT_PENALTY = -3
 _CC_KNOCKOUT_PENALTY = -2
 _CC_KNOCKDOWN_PENALTY = -1
