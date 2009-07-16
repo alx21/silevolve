@@ -88,7 +88,7 @@ class CombatHandler():
             for a in range(0, c.action_penalty + 1):
                 # loops over actions that the character is taking this turn
                 enemies = self.__getEnemies(c)
-                damage = c.attack(enemies)
+                damage = c.attack(enemies,data=self.getAIData(c))
                 if damage == None:
                     if debug: print "We're getting none damage types here ..."
                     continue
@@ -124,7 +124,7 @@ class CombatHandler():
             temp_action_penalty = a[0].action_penalty
             a[0].setActionPenalty(0)
             
-            a[0].attack(target=a[1]).applyDamage()
+            a[0].attack(target=a[1],data=self.getAIData(a[0])).applyDamage()
             
             a[0].hasUsedFreeAction = True
             a[0].setActionPenalty(temp_action_penalty)
@@ -161,7 +161,7 @@ class CombatHandler():
         """
         ai_data = [0] + character.getAIData()
         
-        for e in self.__getEnemies(self,character):
+        for e in self.__getEnemies(character):
             ai_data += e.getAIData()
             ai_data[0] += 1
         

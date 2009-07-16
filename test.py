@@ -64,11 +64,11 @@ if __name__ == "__main__":
     # use anonymous functions to plug in simple data to test ai functions
     # Note to bryce: in python, function names are variables.
     # if you don't put () after them they are assignable, passable, etc
-    thug1.aiPickStance = lambda: 2 # aggressive
-    thug1.aiPickDiceDropped = lambda: 0 # no dice drop
-    thug1.aiPickNumberOfActions = lambda: 1 # one action
-    thug1.aiPickAttackType = lambda: 2 # attack type 1=knockout, 2=knockdown
-    thug1.aiPickWeapon = lambda: 1 # 2nd weapon is hth
+    thug1.aiPickStance = lambda x: 2 # aggressive
+    thug1.aiPickDiceDropped = lambda x: 0 # no dice drop
+    thug1.aiPickNumberOfActions = lambda x: 1 # one action
+    thug1.aiPickAttackType = lambda x: 2 # attack type 1=knockout, 2=knockdown
+    thug1.aiPickWeapon = lambda x: 1 # 2nd weapon is hth
     
     # comment the following lines if you don't want to hear LOTS of stuff
     # character.debug = True

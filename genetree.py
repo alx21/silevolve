@@ -3,32 +3,58 @@ import funclist
 import math
 import inspect
 
+from pyevolve import Util
+from pyevolve import Consts
 class GeneFunctionTree():
-    
-    def __init__(self, MAX_RANDOM = 100, MIN_RANDOM = -100, RATE_OF_MUTATION = 0.05 ):
-        #self.NODE_MUTATION_PROB = a bad way to do it. There would be too many mutations at the start and too few at the end. Or the other way around maybe :P
-        self.initializeGene()
-        self.RATE_OF_MUTATION = RATE_OF_MUTATION
-        self.MAX_RANDOM = MAX_RANDOM
-        self.MIN_RANDOM = MIN_RANDOM
 
-    def randomInt(self): return random.randint(self.MIN_RANDOM,self.MAX_RANDOM)
-
-    def randomFunc(self):
-        ret = random.randint(0, len(funclist.func_list)-1)
-        return ret
-    # we may want to change this later, so that some functions are more or less likely to occur
-    
-    def initializeGene(self):
+    def __init__(self):
+        self.length     =  0
+        self.MAX_RANDOM =  101
+        self.MIN_RANDOM = -100
+        self.pmut       =  0.07
         self.gene = [0]
+        self.mutateNode(self.gene)
         self.length = self.getLength(self.gene)
+    
+    def interpret(self):
+        return funclist.resolve(self.gene)
+        
+    def __repr__(self):
+        return funclist.makeReadable(self.gene)
 
-    def mutateGene(self):
-        # number of mutations! will be at least one.
-        for i in range(0, int(math.ceil(self.RATE_OF_MUTATION * self.length))):
-            # this can be improved by making it an iterable generator function
-            self.mutateNode(self.pickRandomNode())
 
+
+    def __preorder(self,node):
+        if self.__counter == self.__target:
+            return node
+        self.__counter += 1
+        for i in range(1, len(node)):
+            newnode = self.__preorder(node[i])
+            if newnode != None:
+                return newnode
+        return None
+
+    def getLength(self,node):
+        self.__target = -1
+        self.__counter = 0
+        self.__preorder(node)
+        return self.__counter
+        
+    def pickRandomNode(self):
+        # http://okmij.org/ftp/Scheme/random-tree-node.scm
+        # or do the walk thing that bryce suggested because that lisp thing in the link hurts my mind / feelings
+        # note to self: consider looking at that link again later ... it may prove to be faster than the double-walk
+
+        # find the length of the tree - Should be a known value, we populate the tree and in a Tree class it stores the magic number
+        # deal; the tree class is the Gene thing I'm working on now. Also, length is a magic number?
+        self.__target = random.randint(0,self.length-1)
+        # print "We are looking for the node:",self.__target
+        self.__counter = 0
+        # print "Starting preorder search"
+        node = self.__preorder(self.gene)
+        # print "picked the random node:", node
+        return node
+        
     def mutateNode(self, node):
         new_func_index = self.randomFunc()
         # print "Node under mutation:", node, "gene:", self.gene
@@ -80,40 +106,21 @@ class GeneFunctionTree():
         # I am truly a beneficient and caring creator of these blessed creatures
         # who shall endlessly fight to the death on my behalf.
         return [1, [random.randint(0, len(funclist.data))]]
-
-    def pickRandomNode(self):
-        # http://okmij.org/ftp/Scheme/random-tree-node.scm
-        # or do the walk thing that bryce suggested because that lisp thing in the link hurts my mind / feelings
-        # note to self: consider looking at that link again later ... it may prove to be faster than the double-walk
-
-        # find the length of the tree - Should be a known value, we populate the tree and in a Tree class it stores the magic number
-        # deal; the tree class is the Gene thing I'm working on now. Also, length is a magic number?
-        self.__target = random.randint(0,self.length-1)
-        # print "We are looking for the node:",self.__target
-        self.__counter = 0
-        # print "Starting preorder search"
-        node = self.__preorder(self.gene)
-        # print "picked the random node:", node
-        return node
-
-    def getLength(self, node):
-        self.__target = -1
-        self.__counter = 0
-        self.__preorder(node)
-        return self.__counter
-
-    def __preorder(self, node):
-        if self.__counter == self.__target:
-            return node
-        self.__counter += 1
-        for i in range(1, len(node)):
-            newnode = self.__preorder(node[i])
-            if newnode != None:
-                return newnode
-        return None
         
-    def interpret(self):
-        return funclist.resolve(self.gene)
+    def randomInt(self):
+        return random.randint(self.MIN_RANDOM, self.MAX_RANDOM)
+
+    def randomFunc(self):
+        ret = random.randint(0, len(funclist.func_list)-1)
+        return ret
+        # we may want to change this later, so that some functions are more or less likely to occur
+        
+    def mutateGene(self):
+        # number of mutations! will be at least one.
+        for i in range(0, int(round(math.ceil(self.pmut * self.length)))):
+            # this can be improved by making it an iterable generator function
+            self.mutateNode(self.pickRandomNode())
+        return i + 1
             
 if __name__ == "__main__":
     # remove this junk later

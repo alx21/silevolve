@@ -15,7 +15,7 @@ class weapon():
         self.pbb=0
         self.ap = False
         
-    def getAIData():
+    def getAIData(self):
         return [self.dm,
                 self.acc,
                 # self.br, canned for now to help prevent confusion

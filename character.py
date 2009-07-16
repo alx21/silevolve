@@ -186,7 +186,7 @@ class Character():
         self.current_init = None
         self.action_penalty = 0
 
-    def attack(self, enemies=None, target=None):
+    def attack(self, enemies=None, target=None, data=[]):
         # Rename this to action, perhaps
         # implement special actions maybe
         
@@ -195,12 +195,12 @@ class Character():
         if not target:
             if not enemies: return None
             # a defined target means a free strike against a specific foe
-            target = self.pickTarget(enemies)
+            target = self.pickTarget(enemies,data=data)
             
         opts = dict({})
-        weapon = self.pickWeapon()
+        weapon = self.pickWeapon(data)
         if debug: print "    Picked:", weapon.name
-        attack_type = self.pickAttackType(weapon)
+        attack_type = self.pickAttackType(weapon,data)
         
         if debug: print "    Picked attack type:", attack_type
         
@@ -210,12 +210,12 @@ class Character():
         
         if sil._DICE_DROPPED in opt_list:
             # make sure that we can drop dice before asking the AI
-            dice_dropped = self.pickDiceDropped()
+            dice_dropped = self.pickDiceDropped(data)
             opts[sil._DICE_DROPPED] = dice_dropped
             
         if sil._ROF in opt_list:
             # if the weapon supports ROF, ask the AI
-            rof = self.pickROF()
+            rof = self.pickROF(data)
             opts[sil._ROF] = rof
         
         return weapon.attack(self, target, opts)
@@ -224,85 +224,102 @@ class Character():
     
     #### AI SECTION ############################################################
     
-    def pickWeapon(self):
-        index = self.aiPickWeapon()
+    def pickWeapon(self,data=[]):
+        index = self.aiPickWeapon(data)
         if index > 0 and index < len(self.weapons):
             return self.weapons[index]
         return self.weapons[0] # kind default in this case
     
-    def pickAttackType(self, weapon):
+    def pickAttackType(self, weapon,data=[]):
         # ALEX IF YOU ARE LOOKING FOR THIS ATTACK TYPE BUG
         # it is actually perfectly sane behaviour that you intentionally wrote
         # it is time to go to bed.
-        index = self.aiPickAttackType()
+        index = self.aiPickAttackType(data)
         if index > 0 and index < len(weapon.types):
             return index
         return 0 # default attack
         
-    def pickNumberOfActions(self):
-        actions = self.aiPickNumberOfActions()
+    def pickNumberOfActions(self,data=[]):
+        actions = self.aiPickNumberOfActions(data)
         if actions > 0:
             if actions > 3:
                 return 3 # case where actions > 3
             return actions # case where actions is a reasonable number
         return 1 # case where actions is negative or zero. kind default.
     
-    def pickStance(self):
-        stance_index = self.aiPickStance()
+    def pickStance(self,data=[]):
+        stance_index = self.aiPickStance(data)
         if stance_index in sil._STANCES.keys():
             self.setStance(stance_index)
         # implied "else: don't change stance"
                 
-    def pickTarget(self, enemies):
-        enemy_index = self.aiPickTarget()
+    def pickTarget(self, enemies,data=[]):
+        enemy_index = self.aiPickTarget(data)
         if enemy_index >= 0 and enemy_index < len(enemies):
             return enemies[enemy_index]
         return enemies[0] # first enemy in list; kind default
         
-    def pickDiceDropped(self):
-        dice_dropped = self.aiPickDiceDropped()
+    def pickDiceDropped(self,data=[]):
+        dice_dropped = self.aiPickDiceDropped(data)
         if dice_dropped < (self.attroll[0]*-1 - self.stance[0]):
             return (self.attroll[0]*-1 - self.stance[0])
         if dice_dropped > 0:
             return 0
         return dice_dropped
         
-    def pickROF(self, weapon):
-        rof = self.aiPickROF()
+    def pickROF(self, weapon,data=[]):
+        rof = self.aiPickROF(data)
         if rof > weapon.rof:
             return weapon.rof
         if rof < 0:
             return 0
         return rof
+        
+    def fillSlots(self,chromosome):
+        slots = [ self.aiPickStance,
+                  # self.aiPickTarget,
+                  self.aiPickNumberOfActions,
+                  # self.aiPickSpecialAction,
+                  self.aiPickWeapon,
+                  self.aiPickDiceDropped,
+                  # self.aiPickROF,
+                  self.aiPickAttackType ]
+
+        i = 0
+        
+        for f in chromosome:
+            slots[i] = f.interpret
+            i+=1
+            
 
     #### REPLACEABLE AI SLOTS ##################################################
     # The following classes can be replaced with AI functions.
 
-    def aiPickStance(self):
+    def aiPickStance(self,data=[]):
         return 0
 
-    def aiPickTarget(self):
+    def aiPickTarget(self,data=[]):
         # won't be used for initial tests: mano a mano
         return 0
 
-    def aiPickNumberOfActions(self):
+    def aiPickNumberOfActions(self,data=[]):
         return 1
         
-    def aiPickSpecialAction(self):
+    def aiPickSpecialAction(self,data=[]):
         # we using this yet?
         return 0
         
-    def aiPickWeapon(self):
+    def aiPickWeapon(self,data=[]):
         return 0
         
-    def aiPickDiceDropped(self):
+    def aiPickDiceDropped(self,data=[]):
         return 0
         
-    def aiPickROF(self):
+    def aiPickROF(self,data=[]):
         # won't be used for initial tests; no ROF weapons expected
         return 0
         
-    def aiPickAttackType(self):
+    def aiPickAttackType(self,data=[]):
         return 0
     
 #### DICE ROLLER ###############################################################
