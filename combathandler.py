@@ -96,7 +96,7 @@ class CombatHandler():
                 
         # Now apply all of the damages
         for d in action_list:
-            if debug: print "Applying damage! to", d.target.name
+            # if debug: print "Applying damage! to", d.target.name
             if not d.applyDamage():
                 # don't bother giving them a free strike if one is dead :P
                 if d.attacker_gets_free_strike and not c.has_used_free_strike:
@@ -111,7 +111,7 @@ class CombatHandler():
         action_list = []
         for a in free_strike_list:
             # skip any slippery dead players in the free action list
-            if a[0].done or a[1].done: continue
+            if a[0].done or a[1].done or a[0].has_used_free_strike: continue
             
             if debug: print a[0].name, "gets a free strike against", a[1].name
         
@@ -126,7 +126,7 @@ class CombatHandler():
             
             a[0].attack(target=a[1],data=self.getAIData(a[0])).applyDamage()
             
-            a[0].hasUsedFreeAction = True
+            a[0].has_used_free_strike = True
             a[0].setActionPenalty(temp_action_penalty)
         
         

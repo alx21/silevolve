@@ -93,6 +93,6 @@ if __name__ == "__main__":
             
         print i
         for t in (thug1, thug2):
-            print t.name, "has been killed?", t.done, ", Has", t.wounds, "penalty"
+            print t.name, "has been killed?", t.done, ", Has", t.getWoundPenalty(), "penalty"
         
     

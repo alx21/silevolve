@@ -15,7 +15,6 @@ class Character():
             head_armored=False,
             init=(2,0),
             health=0,
-            wounds=0,
             weapons=[weaponlist.meleeWeapon(), weaponlist.hth()],
             done=False):
         self.name         = name
@@ -27,9 +26,10 @@ class Character():
         self.head_armored = head_armored
         self.init         = init
         self.health       = health
-        self.wounds       = wounds
-        self.weapons      = weapons
+        self.flesh_wounds = 0
+        self.deep_wounds  = 0
         self.done         = done
+        self.weapons      = weapons
         self.stance = (0,0,0) # (attack defense init attack_bonus) dice mods
         # note that 'focused' doesn't exist yet.
         self.prone                     = False
@@ -45,7 +45,8 @@ class Character():
     def clear(self):
         self.reset()
         self.stance = (0,0,0)
-        self.wounds = 0
+        self.deep_wounds  = 0
+        self.flesh_wounds = 0
         self.done = False
         self.prone = False
         
@@ -62,7 +63,7 @@ class Character():
                     self.stamina,
                     self.armor,
                     int(self.head_armored),
-                    self.wounds,
+                    self.getWoundPenalty(),
                     self.action_penalty,
                     self.multiple_attacker_penalty,
                     int(self.has_used_free_strike),
@@ -78,15 +79,22 @@ class Character():
             ai_data += w.getAIData()
             
         return ai_data
+        
+    def getWoundPenalty(self):
+        return self.flesh_wounds + self.deep_wounds * 2
                     
         
     def wound(self, damage):
         """ Hurt a guy! Returns True if the victim has been offed or KOd """
     
+        if debug: print " ** Applying damage to", self.name, "from", damage.attacker.name
+    
         self.incMultipleAttackerPenalty(damage.attacker)
     
         dmg = damage.getDamage()
-        if dmg == 0: return False
+        if dmg == 0:
+            if debug: print "  *", self.name, "but MAP incremented to:", self.getMultipleAttackerPenalty()
+            return self.done # pretty much certainly false.
 
         if (damage.aimed_at_head): dmg *= 2
         
@@ -96,60 +104,60 @@ class Character():
     
         if dmg > self.stamina * 2 + arm:
             self.done = True
-
             if debug:
-                print self.name, "has been instant deathed with damage:", dmg
+                print "  *", self.name, "has been instant deathed with damage:", dmg
+            return True
                 
         elif dmg > self.stamina + arm:
-            self.wounds += -2
+            self.deep_wounds += -2
         elif dmg > self.stamina // 2 + arm:
-            self.wounds += -1
+            self.deep_wounds += -1
         
         knockoutpenalty = 0
         if damage.knockout: knockoutpenalty = damage.MoS * -1
         
         if damage.MoS > 0 and damage.knockdown:
-            if debug: print self.name, "has fallen down and CAN'T GET UP"
+            if debug: print "  *", self.name, "has fallen down and CAN'T GET UP"
             self.prone = True
         
         if debug:
-            print "DAMAGE: Target: ", self.name, " damage: ", dmg, " wounds: ", self.wounds, " map: ", self.multiple_attacker_penalty
+            print "  * DAMAGE: Target: ", self.name, " damage: ", dmg, " wounds: ", self.getWoundPenalty(), " map: ", self.getMultipleAttackerPenalty()
         
         return self.healthCheck(knockoutpenalty)
         
     def healthCheck(self, knockoutpenalty = 0):
-        if self.wounds*-1 >=  5 + self.health:
+        if self.getWoundPenalty()*-1 >=  5 + self.health:
             self.done = True
             if debug:
-                print self.name, "has been removed from the fight by way of  massive wound penalties!"
+                print "  *", self.name, "has been removed from the fight by way of  massive wound penalties!"
         else:
-            roll = rollX(2, self.wounds + self.health + knockoutpenalty)
+            roll = rollX(2, self.getWoundPenalty() + self.health + knockoutpenalty)
             
             if debug:
-                print self.name, "health check: ", roll, "with health", self.health, " wounds", self.wounds, "and KO penalty", knockoutpenalty
+                print "  *", self.name, "health check: ", roll, "with health", self.health, " wounds", self.getWoundPenalty(), "and KO penalty", knockoutpenalty
             
-            if roll[1] or roll[0] < 1:
+            if roll[1] or roll[0] < 2:
                 self.done = True
                 
                 if debug:
-                    print self.name, "has been removed from the fight by way of KO!"
+                    print " **", self.name, "has been removed from the fight by way of KO!"
 
         return self.done
         
     def rollAtt(self, dicedropped=0):
         dice = self.attroll[0] + dicedropped + self.stance[0]
-        bonus = self.attroll[1] + self.wounds + self.action_penalty
+        bonus = self.attroll[1] + self.getWoundPenalty() + self.action_penalty
         roll = rollX(dice,bonus)
-        if debug: print "  ", self.name, "attack rolling", dice, bonus, ":", roll
+        if debug: print "   ", self.name, "attack rolling", dice, bonus, ":", roll
         return roll
         
     def rollDef(self, dicedropped=0):
         dice = self.defroll[0] + dicedropped + self.stance[1]
         prone_penalty = 0
         if self.prone: prone_penalty = -3
-        bonus = self.defroll[1] + self.wounds + self.multiple_attacker_penalty + prone_penalty
+        bonus = self.defroll[1] + self.getWoundPenalty() + self.getMultipleAttackerPenalty() + prone_penalty
         roll = rollX( dice, bonus  )
-        if debug: print "  ", self.name, "defence rolling", dice, bonus, ":", roll
+        if debug: print "   ", self.name, "defence rolling", dice, bonus, ":", roll
         return roll
         
     def setInit(self):
@@ -159,7 +167,7 @@ class Character():
         
     def rollInit(self):
         dice = self.init[0] + self.stance[2]
-        bonus = self.init[1] + self.wounds
+        bonus = self.init[1] + self.getWoundPenalty()
         roll = rollX( dice, bonus )
         if debug: print self.name, "init with", dice,bonus, ":", roll
         return roll
@@ -168,7 +176,7 @@ class Character():
         self.stance = sil._STANCES[stance]
         
     def getMultipleAttackerPenalty(self):
-        return self.multiple_attacker_penalty
+        return min(3, self.multiple_attacker_penalty)
         
     def incMultipleAttackerPenalty(self, attacker):
         if not attacker in self.attacker_list:
@@ -180,7 +188,7 @@ class Character():
         
     def reset(self):
         """ Reset transitory combat-round stats for the new round """
-        self.hasUsedFreeAttack = False
+        self.has_used_free_strike = False
         self.multiple_attacker_penalty = 0
         self.attacker_list = []
         self.current_init = None

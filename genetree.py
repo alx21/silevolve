@@ -20,7 +20,7 @@ class GeneFunctionTree():
         return funclist.resolve(self.gene)
         
     def __repr__(self):
-        return funclist.makeReadable(self.gene)
+        return "\n\n" + repr(self.gene) + "\n" + funclist.makeReadable(self.gene)
 
 
 
