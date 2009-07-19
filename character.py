@@ -81,7 +81,7 @@ class Character():
         return ai_data
         
     def getWoundPenalty(self):
-        return self.flesh_wounds + self.deep_wounds * 2
+        return -1 * (self.flesh_wounds + self.deep_wounds * 2)
                     
         
     def wound(self, damage):
@@ -109,9 +109,9 @@ class Character():
             return True
                 
         elif dmg > self.stamina + arm:
-            self.deep_wounds += -2
+            self.deep_wounds += 1
         elif dmg > self.stamina // 2 + arm:
-            self.deep_wounds += -1
+            self.flesh_wounds += 1
         
         knockoutpenalty = 0
         if damage.knockout: knockoutpenalty = damage.MoS * -1
