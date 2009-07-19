@@ -30,7 +30,7 @@ class Character():
         self.deep_wounds  = 0
         self.done         = done
         self.weapons      = weapons
-        self.stance = (0,0,0) # (attack defense init attack_bonus) dice mods
+        self.stance = (0,0,0) # (attack, defense, init) dice mods
         # note that 'focused' doesn't exist yet.
         self.prone                     = False
         self.has_used_free_strike      = False
@@ -176,7 +176,7 @@ class Character():
         self.stance = sil._STANCES[stance]
         
     def getMultipleAttackerPenalty(self):
-        return min(3, self.multiple_attacker_penalty)
+        return max(-3, self.multiple_attacker_penalty)
         
     def incMultipleAttackerPenalty(self, attacker):
         if not attacker in self.attacker_list:

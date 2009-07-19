@@ -31,10 +31,16 @@ class CombatHandler():
     def combatRound(self):
         # this would probably be faster if I degeneralized it down to 2 teams
         # give it a shot sometime, eh?
+
+        self.__removeDead()
+        
+        for t in self.teams:        
+            if len(t) == 0:
+                if debug: print "EMPTY TEAM, this fight is over!"
+                return False
         
         if debug: print "******* STARTING NEW COMBAT ROUND *******"
         
-        self.__removeDead()
         self.__reset()
         self.__setInitiative()
         
@@ -42,10 +48,6 @@ class CombatHandler():
         index = []
         cslice = []
         for t in self.teams:
-        
-            if len(t) == 0:
-                if debug: print "EMPTY TEAM, this fight is over!"
-                return False
             
             # find the highest initiative
             i = max(i, t[-1].getInit())
@@ -58,7 +60,8 @@ class CombatHandler():
             j = 0
             for t in self.teams:
                 while index[j] >=0 and t[index[j]].getInit() == i:
-                    cslice.append(t[index[j]])
+                    if t[index[j]].done == False:
+                        cslice.append(t[index[j]])
                     index[j] -= 1
                 j+=1
             # run a section of the combat round at this initiative slice
