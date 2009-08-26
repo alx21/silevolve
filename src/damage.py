@@ -23,5 +23,18 @@ class Damage():
         
     def getDamage(self): return max(self.MoS * self.dm, 0)
     
+    
+    def getAttacker(): return self.attacker
+    def getAttackerName(): return self.attacker.getName()
+    def getTarget(): return self.target
+    def getDM(): return self.dm
+    def getMoS(): return self.MoS
+    def isKnockdown(): return self.knockdown
+    def isAP(): return self.armor_piercing
+    def isAimedAtHead(): return self.aimed_at_head
+    def isKnockout(): return self.knockout
+    def attackerGetsFreeStrike(): return self.attacker_gets_free_strike
+    def defenderGetsFreeStrike(): return self.defender_gets_free_strike
+    
     def applyDamage(self):
         return self.target.wound(self)

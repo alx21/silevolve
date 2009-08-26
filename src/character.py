@@ -39,6 +39,9 @@ class Character():
         self.current_init              = -1
         self.action_penalty            = 0
         
+    def getName(self): return self.name
+    def getDone(self): return self.done
+        
     def setActionPenalty(self, penalty):
         self.action_penalty = penalty
         
@@ -87,36 +90,36 @@ class Character():
     def wound(self, damage):
         """ Hurt a guy! Returns True if the victim has been offed or KOd """
     
-        if debug: print " ** Applying damage to", self.name, "from", damage.attacker.name
+        if debug: print " ** Applying damage to", self.name, "from", damage.getAttackerName()
     
-        self.incMultipleAttackerPenalty(damage.attacker)
+        self.incMultipleAttackerPenalty(damage.getAttackerName())
     
         dmg = damage.getDamage()
         if dmg == 0:
             if debug: print "  *", self.name, "but MAP incremented to:", self.getMultipleAttackerPenalty()
             return self.done # pretty much certainly false.
 
-        if (damage.aimed_at_head): dmg *= 2
+        if (damage.isAimedAtHead()): dmg *= 2
         
         arm = self.armor
-        if damage.aimed_at_head and not self.head_armored: arm = 0
-        elif damage.armor_piercing: arm = arm // 2
+        if damage.isAimedAtHead() and not self.head_armored: arm = 0
+        elif damage.isAP(): arm = arm // 2
     
-        if dmg > self.stamina * 2 + arm:
+        if dmg >= self.stamina * 2 + arm:
             self.done = True
             if debug:
                 print "  *", self.name, "has been instant deathed with damage:", dmg
             return True
                 
-        elif dmg > self.stamina + arm:
+        elif dmg >= self.stamina + arm:
             self.deep_wounds += 1
-        elif dmg > self.stamina // 2 + arm:
+        elif dmg >= self.stamina // 2 + arm:
             self.flesh_wounds += 1
         
         knockoutpenalty = 0
-        if damage.knockout: knockoutpenalty = damage.MoS * -1
+        if damage.isKnockout(): knockoutpenalty = damage.getMoS() * -1
         
-        if damage.MoS > 0 and damage.knockdown:
+        if damage.getMoS() > 0 and damage.isKnockdown():
             if debug: print "  *", self.name, "has fallen down and CAN'T GET UP"
             self.prone = True
         

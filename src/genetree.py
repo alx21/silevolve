@@ -127,7 +127,7 @@ if __name__ == "__main__":
     
     gft = GeneFunctionTree()
     
-    for j in xrange(0,1000000):
+    for j in xrange(0,1000):
         gft.initializeGene()
         for i in xrange(0,10):
             gft.mutateGene()

@@ -1,10 +1,9 @@
 # hey bryce I've added some notes about python in here for you
 
-# python imports sort of magically; the files listed below are in the same dir
-# so they are found and run easily
-import character
-import combathandler
-import weaponlist
+# import a bunch of files from the src folder
+from src import character
+from src import combathandler
+from src import weaponlist
 
 # how to instantiate characters!
 

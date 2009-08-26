@@ -1,11 +1,14 @@
-import character
-import damage
-import combathandler
-import silconstants
-import weaponlist
+from src import character
+from src import damage
+from src import combathandler
+from src import silconstants
+from src import weaponlist
 
-import funclist
-import genetree
+from src import funclist
+from src import genetree
+
+# all of the "from src" stuff is nonsense but I don't know what this package
+# is called yet ...
 
 from pyevolve import G1DList
 from pyevolve import GSimpleGA
